@@ -14,7 +14,7 @@ def preprocess(args, input_folders, out_dir, hparams):
 	os.makedirs(mel_dir, exist_ok=True)
 	os.makedirs(wav_dir, exist_ok=True)
 	os.makedirs(linear_dir, exist_ok=True)
-	metadata = preprocessor.build_from_path(hparams, input_folders, mel_dir, linear_dir, wav_dir, args.n_jobs, tqdm=tqdm)
+	metadata = preprocessor.build_from_path(hparams, input_folders, mel_dir, linear_dir, wav_dir, args.dataset, args.n_jobs, tqdm=tqdm)
 	write_metadata(metadata, out_dir)
 
 def write_metadata(metadata, out_dir):
@@ -36,7 +36,7 @@ def norm_data(args):
 	merge_books = (args.merge_books=='True')
 
 	print('Selecting data folders..')
-	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS']
+	supported_datasets = ['LJSpeech-1.0', 'LJSpeech-1.1', 'M-AILABS', 'ivona_speech_data']
 	if args.dataset not in supported_datasets:
 		raise ValueError('dataset value entered {} does not belong to supported datasets: {}'.format(
 			args.dataset, supported_datasets))
@@ -44,6 +44,8 @@ def norm_data(args):
 	if args.dataset.startswith('LJSpeech'):
 		return [os.path.join(args.base_dir, args.dataset)]
 
+	if args.dataset.startswith('ivona'):
+		return [os.path.join(args.base_dir, args.dataset)]
 
 	if args.dataset == 'M-AILABS':
 		supported_languages = ['en_US', 'en_UK', 'fr_FR', 'it_IT', 'de_DE', 'es_ES', 'ru_RU',

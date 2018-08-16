@@ -7,7 +7,7 @@ from datasets import audio
 from wavenet_vocoder.util import is_mulaw, is_mulaw_quantize, mulaw, mulaw_quantize
 
 
-def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12, tqdm=lambda x: x):
+def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, dataset, n_jobs=12, tqdm=lambda x: x):
 	"""
 	Preprocesses the speech dataset from a gven input path to given output directories
 
@@ -30,17 +30,37 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, n_jobs=12
 	futures = []
 	index = 1
 	for input_dir in input_dirs:
-		with open(os.path.join(input_dir, 'metadata.csv'), encoding='utf-8') as f:
-			for line in f:
-				parts = line.strip().split('|')
-				basename = parts[0]
-				wav_path = os.path.join(input_dir, 'wavs', '{}.wav'.format(basename))
-				text = parts[2]
-				futures.append(executor.submit(partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
-				index += 1
+		if dataset == 'ivona_speech_data':
+			with open(os.path.join(input_dir, 'line_index.tsv'), encoding='utf-8') as f:
+				for line in f:
+					[token_fname, audio_fname, reader] = line.strip().split('\t')
+					# only select set 1 from ivona
+					if int(token_fname[9]) == 1:
+						text = load_text(os.path.join(input_dir, 'ivona_txt', token_fname))
+						wav_path = os.path.join(input_dir, 'Kristjan_export', '%s' % audio_fname)
+						basename = token_fname[:15]
+						futures.append(executor.submit(
+								partial(_process_utterance, mel_dir, linear_dir, wav_dir, 
+								basename, wav_path, text, hparams)))
+						index += 1
+		else:
+			with open(os.path.join(input_dir, 'metadata.csv'), encoding='utf-8') as f:
+				for line in f:
+					parts = line.strip().split('|')
+					basename = parts[0]
+					wav_path = os.path.join(input_dir, 'wavs', '{}.wav'.format(basename))
+					text = parts[2]
+					futures.append(executor.submit(partial(_process_utterance, mel_dir, linear_dir, wav_dir, basename, wav_path, text, hparams)))
+					index += 1
 
 	return [future.result() for future in tqdm(futures) if future.result() is not None]
 
+def load_text(path):
+	text = ''
+	with open(path, 'r') as f:
+		for line in f:
+			text += line
+	return text.strip()
 
 def _process_utterance(mel_dir, linear_dir, wav_dir, index, wav_path, text, hparams):
 	"""
