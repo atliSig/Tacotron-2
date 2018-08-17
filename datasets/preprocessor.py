@@ -31,7 +31,7 @@ def build_from_path(hparams, input_dirs, mel_dir, linear_dir, wav_dir, dataset, 
 	index = 1
 	for input_dir in input_dirs:
 		if dataset == 'ivona_speech_data':
-			with open(os.path.join(input_dir, 'line_index.tsv'), encoding='utf-8') as f:
+			with open('line_index.tsv', encoding='utf-8') as f:
 				for line in f:
 					[token_fname, audio_fname, reader] = line.strip().split('\t')
 					# only select set 1 from ivona

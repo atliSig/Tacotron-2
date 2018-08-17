@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+# ivona related and more
+ivona_speech_data/
+line_index.tsv
+slurm-*
+
 # Distribution / packaging
 .Python
 build/
