@@ -7,9 +7,10 @@ __pycache__/
 *.so
 
 # ivona related and more
-ivona_speech_data/
+ivona_speech_data
 line_index.tsv
 slurm-*
+*.sh
 
 # Distribution / packaging
 .Python
